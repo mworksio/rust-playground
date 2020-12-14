@@ -12,10 +12,17 @@ fn main() {
 	println!("{number:>0width$}", number=1, width=6);
 
 	//println!("My name is {0}, {1} {0}", "Bond");
-	
+	println!("My name is {0}, {1} {0}", "Bond", "James");
+
 	#[allow(dead_code)]
-    	struct Structure(i32);
+ 	struct Structure(i32);
+ 	// println!("This struct `{}` won't print...", Structure(3));
 
-    	println!("This struct `{}` won't print...", Structure(3));
+	PI();
+}
 
+fn PI() {
+	// let pi = 3.141592;
+	println!("Pi is roughly {pi:>.width$}", pi=3.1415926, width=2);
+	// println!("Pi is roughly {}", pi);
 }
