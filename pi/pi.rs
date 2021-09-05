@@ -15,3 +15,14 @@ fn main() {
 
     println!("is_pi: {:?}, is_unit1: {:?}, is_unit2: {:?}", is_pi, is_unit1, is_unit2);
 }
+
+// No cargo can't be tested
+// #[cfg(test)]
+// mod tests {
+//     #[test]
+//     // fn it_works(fn()->f64, fn()) {
+//         fn it_works() {
+//             assert_eq!(2 + 2, 4);
+//         }
+//     }
+// }
