@@ -34,11 +34,21 @@ fn fib_for(n: u8) {
     let (mut a, mut b) = (1, 1);
 
     for _i in 2..n {
-        let c = a + b;
-        a = b;
-        b = c;
+        // let c = a + b;
+        // a = b;
+        // b = c;
+        let (x, y) = cal(a, b);
+        a = x;
+        b = y;
         println!("next val is {}", b);
     }
+}
+
+fn cal(mut a: u8, mut b: u8) -> (u8, u8) {
+    let c = a + b;
+    a = b;
+    b = c;
+    return (a, b);
 }
 
 fn main() {
