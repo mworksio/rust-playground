@@ -17,6 +17,9 @@ use std::fs;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let url = "https://www.rust-lang.org/";
     let output = "rust.md";
+    for arg in std::env::args() {
+        println!("{}", arg);
+    }
 
     println!("Fetching url: {}", url);
     let body = reqwest::blocking::get(url)?.text()?;
