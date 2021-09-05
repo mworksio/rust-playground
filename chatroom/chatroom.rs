@@ -43,4 +43,22 @@ fn main() {
     let event3 = Event::Message((alice.id, topic.id, "Hello World".into()));
 
     println!("event1: {:?}, event2: {:?}, event3: {:?}", event1, event2, event3);
+
+    process_event(&event1);
+    process_event(&event2);
+    process_event(&event3);
 }
+
+fn process_event(event: &Event) {
+    match event {
+        Event::Join((uid, _tid)) => println!("user {:?} joined", uid),
+        Event::Leave((uid, tid)) => println!("user {:?} left {:?}", uid, tid),
+        Event::Message((_, _, msg)) => println!("broadcast: {}", msg),
+    }
+}
+
+// fn process_event(event: &Event) {
+//     if let Event::Message((_, _, msg)) = event {
+//         println!("broadcast: {}", msg)
+//     }
+// }
