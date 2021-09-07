@@ -4,8 +4,12 @@ use serde_json::{Value};
 use serde::{Deserialize, Serialize};
 use std::fs;
 // use serde_json::{Result};
+// extern crate serde;
+// extern crate serde_json;
+// #[macro_use]
+// extern crate serde_derive;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct UnitTestReport {
   title: String,
   total_tests: String,
@@ -50,13 +54,15 @@ fn main() -> Result<()>  {
     let all_results = &report[3]["children"][0];
     println!("all_results: {}", all_results);
 
+    // let t = title.as_str();
+
     let r = UnitTestReport{ 
-        title: title.to_string(),
-        total_tests: total_tests.to_string(),
-        passed: passed.to_string(),
-        pass_percentage: pass_percentage.to_string(), 
-        run_duration: run_duration.to_string(),
-        all_results: all_results.to_string(),
+        title: title.as_str().unwrap().to_string(),
+        total_tests: total_tests.as_str().unwrap().to_string(),
+        passed: passed.as_str().unwrap().to_string(),
+        pass_percentage: pass_percentage.as_str().unwrap().to_string(), 
+        run_duration: run_duration.as_str().unwrap().to_string(),
+        all_results: all_results.as_str().unwrap().to_string(),
     };
 
     let j = serde_json::to_string(&r)?;
