@@ -95,7 +95,7 @@ where
     }
 
     pub fn with_strategy(input: I, strategy: H) -> Self {
-		antlr_rust::recognizer::check_version("0","2");
+		antlr_rust::recognizer::check_version("0","3");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
 			_decision_to_DFA.clone(),
@@ -142,17 +142,17 @@ pub trait CSVParserContext<'input>:
 	ParserRuleContext<'input, TF=LocalTokenFactory<'input>, Ctx=CSVParserContextType>
 {}
 
+antlr_rust::coerce_from!{ 'input : CSVParserContext<'input> }
+
 impl<'input> CSVParserContext<'input> for TerminalNode<'input,CSVParserContextType> {}
 impl<'input> CSVParserContext<'input> for ErrorNode<'input,CSVParserContextType> {}
 
-#[antlr_rust::impl_tid]
-impl<'input> antlr_rust::TidAble<'input> for dyn CSVParserContext<'input> + 'input{}
+antlr_rust::tid! { impl<'input> TidAble<'input> for dyn CSVParserContext<'input> + 'input }
 
-#[antlr_rust::impl_tid]
-impl<'input> antlr_rust::TidAble<'input> for dyn CSVListener<'input> + 'input{}
+antlr_rust::tid! { impl<'input> TidAble<'input> for dyn CSVListener<'input> + 'input }
 
 pub struct CSVParserContextType;
-antlr_rust::type_id!{CSVParserContextType}
+antlr_rust::tid!{CSVParserContextType}
 
 impl<'input> ParserNodeType<'input> for CSVParserContextType{
 	type TF = LocalTokenFactory<'input>;
@@ -215,10 +215,13 @@ ph:PhantomData<&'input str>
 impl<'input> CSVParserContext<'input> for CsvFileContext<'input>{}
 
 impl<'input,'a> Listenable<dyn CSVListener<'input> + 'a> for CsvFileContext<'input>{
-	fn enter(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_csvFile(self);
-	}
+		fn enter(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_csvFile(self);
+		}fn exit(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
+			listener.exit_csvFile(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for CsvFileContextExt<'input>{
@@ -227,7 +230,7 @@ impl<'input> CustomRuleContext<'input> for CsvFileContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_csvFile }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_csvFile }
 }
-antlr_rust::type_id!{CsvFileContextExt<'a>}
+antlr_rust::tid!{CsvFileContextExt<'a>}
 
 impl<'input> CsvFileContextExt<'input>{
 	fn new(parent: Option<Rc<dyn CSVParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<CsvFileContextAll<'input>> {
@@ -267,8 +270,8 @@ where
 		let mut _localctx = CsvFileContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 0, RULE_csvFile);
         let mut _localctx: Rc<CsvFileContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -295,7 +298,8 @@ where
 				if !((((_la) & !0x3f) == 0 && ((1usize << _la) & ((1usize << T__0) | (1usize << T__1) | (1usize << T__2) | (1usize << TEXT) | (1usize << STRING))) != 0)) {break}
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -324,10 +328,13 @@ ph:PhantomData<&'input str>
 impl<'input> CSVParserContext<'input> for HdrContext<'input>{}
 
 impl<'input,'a> Listenable<dyn CSVListener<'input> + 'a> for HdrContext<'input>{
-	fn enter(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_hdr(self);
-	}
+		fn enter(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_hdr(self);
+		}fn exit(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
+			listener.exit_hdr(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for HdrContextExt<'input>{
@@ -336,7 +343,7 @@ impl<'input> CustomRuleContext<'input> for HdrContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_hdr }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_hdr }
 }
-antlr_rust::type_id!{HdrContextExt<'a>}
+antlr_rust::tid!{HdrContextExt<'a>}
 
 impl<'input> HdrContextExt<'input>{
 	fn new(parent: Option<Rc<dyn CSVParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<HdrContextAll<'input>> {
@@ -370,7 +377,7 @@ where
 		let mut _localctx = HdrContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 2, RULE_hdr);
         let mut _localctx: Rc<HdrContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -380,7 +387,8 @@ where
 			recog.row()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -409,10 +417,13 @@ ph:PhantomData<&'input str>
 impl<'input> CSVParserContext<'input> for RowContext<'input>{}
 
 impl<'input,'a> Listenable<dyn CSVListener<'input> + 'a> for RowContext<'input>{
-	fn enter(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_row(self);
-	}
+		fn enter(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_row(self);
+		}fn exit(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
+			listener.exit_row(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for RowContextExt<'input>{
@@ -421,7 +432,7 @@ impl<'input> CustomRuleContext<'input> for RowContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_row }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_row }
 }
-antlr_rust::type_id!{RowContextExt<'a>}
+antlr_rust::tid!{RowContextExt<'a>}
 
 impl<'input> RowContextExt<'input>{
 	fn new(parent: Option<Rc<dyn CSVParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<RowContextAll<'input>> {
@@ -458,8 +469,8 @@ where
 		let mut _localctx = RowContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 4, RULE_row);
         let mut _localctx: Rc<RowContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -502,7 +513,8 @@ where
 			recog.base.match_token(T__2,&mut recog.err_handler)?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -531,10 +543,13 @@ ph:PhantomData<&'input str>
 impl<'input> CSVParserContext<'input> for FieldContext<'input>{}
 
 impl<'input,'a> Listenable<dyn CSVListener<'input> + 'a> for FieldContext<'input>{
-	fn enter(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_field(self);
-	}
+		fn enter(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_field(self);
+		}fn exit(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
+			listener.exit_field(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for FieldContextExt<'input>{
@@ -543,7 +558,7 @@ impl<'input> CustomRuleContext<'input> for FieldContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_field }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_field }
 }
-antlr_rust::type_id!{FieldContextExt<'a>}
+antlr_rust::tid!{FieldContextExt<'a>}
 
 impl<'input> FieldContextExt<'input>{
 	fn new(parent: Option<Rc<dyn CSVParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<FieldContextAll<'input>> {
@@ -584,7 +599,7 @@ where
 		let mut _localctx = FieldContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 6, RULE_field);
         let mut _localctx: Rc<FieldContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			recog.base.set_state(32);
 			recog.err_handler.sync(&mut recog.base)?;
@@ -621,7 +636,8 @@ where
 
 				_ => Err(ANTLRError::NoAltError(NoViableAltError::new(&mut recog.base)))?
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
