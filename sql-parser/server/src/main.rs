@@ -1,5 +1,9 @@
 use tokio::net::TcpListener;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use sqlparser::dialect::MySqlDialect;
+use sqlparser::parser::Parser;
+use std::str;
+
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -19,6 +23,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         return;
                     }
                 };
+
+                let sql = match str::from_utf8(&buf) {
+                    Ok(v) => v, 
+                    Err(e) => panic!("invalid {:?}", e),
+                };
+
+                let dialect = MySqlDialect {};
+                let ast = Parser::parse_sql(&dialect, sql).unwrap();
+
+                let data = serde_json::to_string_pretty(ast).unwrap();
 
                 if let Err(e) = socket.write_all(&buf[0..n]).await {
                     eprintln!("failed to write to socket; err = {:?}", e);
