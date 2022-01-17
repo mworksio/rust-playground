@@ -1,0 +1,18 @@
+[package]
+name = "tracing_subscriber"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "yak_shave"
+path = "src/yak_shave.rs"
+
+[dependencies]
+tracing = "0.1"
+tracing-subscriber = "0.2.2"
+
+# fmt examples
+snafu = "0.6.10"
+thiserror = "1.0.26"
