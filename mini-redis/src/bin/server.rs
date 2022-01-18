@@ -1,5 +1,5 @@
 use mini_redis::{server, DEFAULT_PORT};
-
+/// What is it ?
 use structopt::StructOpt;
 use tokio::net::TcpListener;
 use tokio::signal;
@@ -16,4 +16,11 @@ pub async fn main() -> mini_redis::Result<()> {
     server::run(listener, signal::ctrl_c()).await;
 
     Ok(())
+}
+
+#[derive(StructOpt, Debug)]
+#[structopt(name = "mini-redis-server", version = env!("CARGO_PKG_VERSION"), author = env!("CARGO_PKG_AUTHORS"), about = "A Redis server")]
+struct Cli {
+    #[structopt(name = "port", long = "--port")]
+    port: Option<String>,
 }
