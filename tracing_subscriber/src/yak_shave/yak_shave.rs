@@ -1,7 +1,7 @@
 use snafu::{ResultExt, Snafu};
 use std::error::Error;
 use thiserror::Error;
-use tracing::{debug, error, info, span, trace, warn , Level};
+use tracing::{debug, error, info, span, trace, warn, Level};
 
 // #[tracing::Instrument]
 pub fn shave(yak: usize) -> Result<(), Box<dyn Error + 'static>> {
@@ -12,7 +12,7 @@ pub fn shave(yak: usize) -> Result<(), Box<dyn Error + 'static>> {
             .fail()
             .map_err(|source| MissingYakError::OutOfSpace { source })
             .context(MissingYak)
-            .map_err(|err| err.info());
+            .map_err(|err| err.into());
     } else {
         trace!("yak shaved successfully!");
     }
@@ -50,9 +50,7 @@ enum OutOfSpaceError {
 #[derive(Debug, Error)]
 enum MissingYakError {
     #[error("out of space")]
-    OutOfSpace {
-        source: OutOfSpaceError
-    }
+    OutOfSpace { source: OutOfSpaceError },
 }
 
 #[derive(Debug, Snafu)]
