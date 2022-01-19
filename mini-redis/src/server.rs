@@ -3,19 +3,20 @@ use tokio::net::{TcpListener, TcpStream};
 use tracing::{info, error, trace, instrument, debug};
 use std::future::Future;
 use tokio::sync::{broadcast, mpsc};
-use crate::{Connection, Command};
+use crate::{Connection, Command, Db, Shutdown, DbDropGuard};
 
 pub async fn run(listener: TcpListener, shutdown: impl Future) {
     trace!("in run");
 
-    // let (notify_shutdown , _) = broadcast::channel(1);
+    let (notify_shutdown , _) = broadcast::channel(1);
     // NOTE: Using turbofish when we only need to variable declaration. 
     // let (x , _) = broadcast::channel::<broadcast::Sender<()>>(1);
     // let (shutdown_complete_tx, shutdown_complete_rx) = mpsc::channel(1);
 
     let mut server: Listener = Listener {
         listener,
-        // notify_shutdown,
+        notify_shutdown,
+        db_holder: DbDropGuard::new(),
         // shutdown_complete_tx,
         // shutdown_complete_rx,
     };
@@ -43,6 +44,8 @@ impl Listener {
             let socket = self.accept().await?;
             let mut handler = Handler {
                 connection: Connection::new(socket),
+                db: self.db_holder.db(),
+                shutdown: Shutdown::new(self.notify_shutdown.subscribe()),
             };
 
             tokio::spawn(async move {
@@ -67,7 +70,8 @@ impl Listener {
 
 struct Listener {
     listener: TcpListener,
-    // notify_shutdown: broadcast::Sender<()>, 
+    notify_shutdown: broadcast::Sender<()>, 
+    db_holder: DbDropGuard,
     // shutdown_complete_tx: mpsc::Sender<()>,
     // shutdown_complete_rx: mpsc::Receiver<()>,
 }
@@ -76,6 +80,8 @@ struct Listener {
 #[derive(Debug)]
 struct Handler {
     connection: Connection,
+    db: Db,
+    shutdown: Shutdown,
 }
 
 impl Handler {
@@ -93,7 +99,7 @@ impl Handler {
 
             let cmd = Command::from_frame(frame)?;
             debug!(?cmd);
-            // cmd.apply(&self.db, &mut self.connection, &mut self.shutdown).await?;
+            cmd.apply(&self.db, &mut self.connection, &mut self.shutdown).await?;
         }
         Ok(())
     }

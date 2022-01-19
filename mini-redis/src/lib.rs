@@ -14,3 +14,10 @@ pub use frame::Frame;
 
 mod parse;
 use parse::Parse;
+
+mod db;
+use db::Db;
+use db::DbDropGuard;
+
+mod shutdown;
+use shutdown::Shutdown;

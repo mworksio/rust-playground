@@ -1,12 +1,13 @@
-use crate::{Frame, Parse};
+use crate::{Frame, Parse, Db, Connection, Shutdown};
+use tracing::{debug, instrument};
 
 #[derive(Debug)]
 pub enum Command {
     Get(Get),
-    Publish(Publish),
-    Set(Set),
-    Subscribe(Subscribe),
-    Unsubscribe(Unsubscribe),
+    // Publish(Publish),
+    // Set(Set),
+    // Subscribe(Subscribe),
+    // Unsubscribe(Unsubscribe),
     Unknown(Unknown),
 }
 
@@ -19,6 +20,19 @@ impl Get {
     pub(crate) fn parse_frames(parse: &mut Parse) -> crate::Result<Get> {
         let key = parse.next_string()?;
         Ok(Get { key })
+    }
+
+    pub(crate) async fn apply(self, db: &Db, dst: &mut Connection) -> crate::Result<()> {
+        let response = if let Some(value) = db.get(&self.key) {
+            Frame::Bulk(value)
+        } else {
+            Frame::Null
+        };
+
+        debug!(?response);
+
+        dst.write_frame(&response).await?;
+        Ok(())
     }
 }
 
@@ -55,6 +69,11 @@ impl Unknown {
             command_name: key.to_string(),
         }
     }
+
+    #[instrument(skip(self, dst))]
+    pub(crate) async fn apply(self, dst: &mut Connection) -> crate::Result<()> {
+        Ok(())
+    }
 }
 
 impl Command {
@@ -71,4 +90,14 @@ impl Command {
 
         Ok(command)
     }
+
+    pub(crate) async fn apply(self, db: &Db, dst: &mut Connection, shutdown: &mut Shutdown) -> crate::Result<()> {
+        use Command::*;
+
+        match self {
+            Get(cmd) => cmd.apply(db, dst).await,
+            Unknown(cmd) => cmd.apply(dst).await,
+        }
+    }
+
 }
