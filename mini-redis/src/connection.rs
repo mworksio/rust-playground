@@ -54,7 +54,11 @@ impl Connection {
     pub async fn write_frame(&mut self, frame: &Frame) -> io::Result<()> {
         match frame {
             Frame::Array(val) => {
-
+                self.stream.write_u8(b'*').await?;
+                self.write_decimal(val.len() as u64).await?;
+                for entry in &**val {
+                    self.write_value(entry).await?;
+                }
             }
             _ => self.write_value(frame).await?,
         }
@@ -65,22 +69,47 @@ impl Connection {
     async fn write_value(&mut self, frame: &Frame) -> io::Result<()> {
         match frame {
             Frame::Simple(val) => {
-                // self.stream.write_u8(b'+').await?;
+                self.stream.write_u8(b'+').await?;
+                self.stream.write_all(val.as_bytes()).await?;
+                self.stream.write_all(b"\r\n").await?;
             }
             Frame::Error(val) => {
+                self.stream.write_u8(b'-').await?;
+                self.stream.write_all(val.as_bytes()).await?;
+                self.stream.write_all(b"\r\n").await?;
             }
             Frame::Integer(val) => {
-
+                self.stream.write_u8(b':').await?;
+                self.write_decimal(*val).await?;
             }
             Frame::Bulk(val) => {
+                let len = val.len();
 
+                self.stream.write_u8(b'$').await?;
+                self.write_decimal(len as u64).await?;
+                self.stream.write_all(val).await?;
+                self.stream.write_all(b"\r\n").await?;
             }
             Frame::Null => {
-
+                self.stream.write_all(b"$-1\r\n").await?;
             }
             Frame::Array(val) => unreachable!(),
         }
         Ok(())
     }
+
+    async fn write_decimal(&mut self, val: u64) ->  io::Result<()> {
+        use std::io::Write;
+
+        let mut buf = [0u8; 20];
+        let mut buf = Cursor::new(&mut buf[..]);
+        write!(&mut buf, "{}", val)?;
+
+        let pos = buf.position() as usize;
+        self.stream.write_all(&buf.get_ref()[..pos]).await?;
+        self.stream.write_all(b"\r\n").await?;
+
+        Ok(())
+    }   
 
 }
