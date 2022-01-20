@@ -2,6 +2,7 @@ use bytes::{Bytes, Buf};
 use std::fmt;
 use std::io::Cursor;
 use std::string::FromUtf8Error;
+use std::num::TryFromIntError;
 
 #[derive(Debug, Clone)]
 pub enum Frame {
@@ -24,6 +25,29 @@ impl Frame {
                 get_line(src)?;    
                 Ok(())
             }   
+            b'-' => {
+                get_line(src)?;
+                Ok(())
+            }
+            b':' => {
+                let _ = get_decimal(src)?;
+                Ok(())
+            }
+            b'$' => {
+                if b'-' == peek_u8(src)? {
+                    skip(src, 4)
+                } else {
+                    let len: usize = get_decimal(src)?.try_into()?;
+                    skip(src, len + 2)
+                }
+            }
+            b'*' => {
+                let len = get_decimal(src)?;
+                for _ in 0..len {
+                    Frame::check(src)?;
+                }
+                Ok(())
+            }
             actual => Err(format!("protocol error; invalid frame type byte `{}`", actual).into()),
         }
     }
@@ -35,17 +59,45 @@ impl Frame {
                 let string = String::from_utf8(line)?;
                 Ok(Frame::Simple(string))
             }
-            // b'-' => {
-            // }
-            // b':' => {
+            b'-' => {
+                let line = get_line(src)?.to_vec();
+                let string = String::from_utf8(line)?;
+                Ok(Frame::Error(string))
+            }
+            b':' => {
+                let len = get_decimal(src)?;
+                Ok(Frame::Integer(len))
+            }
+            b'$' => {
+                if b'-' == peek_u8(src)? {
+                    let line = get_line(src)?;
+                    if line != b"-1" {
+                        return Err("protocol error; invalid frame format".into());
+                    }
 
-            // }
-            // b'$' => {
+                    Ok(Frame::Null)
+                } else {
+                    let len = get_decimal(src)?.try_into()?;
+                    let n = len + 2;
 
-            // }
-            // b'*' => {
+                    if src.remaining() < n {
+                        return Err(Error::Incomplete);
+                    }
 
-            // }
+                    let data = Bytes::copy_from_slice(&src.chunk()[..len]);
+                    skip(src, n)?;
+                    Ok(Frame::Bulk(data))
+                }
+            }
+            b'*' => {
+                let len = get_decimal(src)?.try_into()?;
+                let mut out = Vec::with_capacity(len);
+
+                for _ in 0..len {
+                    out.push(Frame::parse(src)?);
+                }
+                Ok(Frame::Array(out))
+            }
             _ => unimplemented!(),
         }
     }
@@ -85,6 +137,7 @@ fn get_u8(src: &mut Cursor<&[u8]>) -> Result<u8, Error> {
     Ok(src.get_u8())
 }
 
+// TODO: Why does get_line need lifecycle tag ?
 fn get_line<'a>(src: &mut Cursor<&'a [u8]>) -> Result<&'a [u8], Error> {
     let start = src.position() as usize;    
     let end = src.get_ref().len() - 1;
@@ -105,12 +158,6 @@ pub enum Error {
     Other(crate::Error),
 }
 
-impl From<String> for Error {
-    fn from(src: String) -> Error {
-        Error::Other(src.into())
-    }
-}
-
 impl fmt::Display for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -122,14 +169,51 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-impl From<FromUtf8Error> for Error {
-    fn from(_src: FromUtf8Error) -> Error {
-        "protocol error; invalid frame format".into()
-    } 
+impl From<String> for Error {
+    fn from(src: String) -> Error {
+        Error::Other(src.into())
+    }
 }
 
 impl From<&str> for Error {
     fn from(src: &str) -> Error {
         src.to_string().into()
     }
+}
+
+
+impl From<FromUtf8Error> for Error {
+    fn from(_src: FromUtf8Error) -> Error {
+        "protocol error; invalid frame format".into()
+    } 
+}
+
+impl From<TryFromIntError> for Error {
+    fn from(_src: TryFromIntError) -> Error {
+        "protocol error: invalid frame format".into()
+    }
+}
+
+fn get_decimal(src: &mut Cursor<&[u8]>) -> Result<u64, Error> {
+    use atoi::atoi;
+
+    let line = get_line(src)?;
+    atoi::<u64>(line).ok_or_else(|| "protocol error; invalid frame format".into())
+}
+
+fn skip(src: &mut Cursor<&[u8]>, n: usize) -> Result<(), Error> {
+    if src.remaining() < n {
+        return Err(Error::Incomplete);
+    }
+
+    src.advance(n);
+    Ok(())
+}
+
+fn peek_u8(src: &mut Cursor<&[u8]>) -> Result<u8, Error> {
+    if !src.has_remaining() {
+        return Err(Error::Incomplete);
+    }
+
+    Ok(src.chunk()[0])
 }
