@@ -1,5 +1,6 @@
 use crate::Frame;
 use std::{fmt, vec, str};
+use bytes::Bytes;
 
 #[derive(Debug)]
 pub(crate) struct Parse {
@@ -45,6 +46,29 @@ impl Parse {
                 frame
             )
             .into()),
+        }
+    }
+    pub(crate) fn next_bytes(&mut self) -> Result<Bytes, ParseError> {
+        match self.next()? {
+            Frame::Simple(s) => Ok(Bytes::from(s.into_bytes())),
+            Frame::Bulk(data) => Ok(data),
+            frame => Err(format!(
+                "protocol error; expected simple frame or bulk frame, got {:?}",
+                frame
+            )
+            .into()),
+        }
+    }
+    pub(crate) fn next_int(&mut self) -> Result<u64, ParseError> {
+        use atoi::atoi;
+
+        const MSG: &str = "protocol error; invalid number";
+
+        match self.next()? {
+            Frame::Integer(v) => Ok(v),
+            Frame::Simple(data) => atoi::<u64>(data.as_bytes()).ok_or_else(|| MSG.into()),
+            Frame::Bulk(data) => atoi::<u64>(&data).ok_or_else(|| MSG.into()),
+            frame => Err(format!("protocol error; expected int frame but got {:?}", frame).into()),
         }
     }
 }

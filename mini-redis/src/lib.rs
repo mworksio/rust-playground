@@ -13,7 +13,7 @@ mod frame;
 pub use frame::Frame;
 
 mod parse;
-use parse::Parse;
+use parse::{Parse, ParseError};
 
 mod db;
 use db::Db;
