@@ -87,7 +87,7 @@ struct Handler {
 impl Handler {
     #[instrument(skip(self))]
     async fn run(&mut self) -> crate::Result<()> {
-        while true {
+        while !self.shutdown.is_shutdown() {
             let maybe_frame = tokio::select! {
                 res = self.connection.read_frame() => res?,
             };

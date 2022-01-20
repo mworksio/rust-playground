@@ -13,4 +13,8 @@ impl Shutdown {
             notify,
         }
     }
+
+    pub(crate) fn is_shutdown(&self) -> bool {
+        self.shutdown
+    }
 }

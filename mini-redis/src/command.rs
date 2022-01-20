@@ -22,6 +22,7 @@ impl Get {
         Ok(Get { key })
     }
 
+    #[instrument(skip(self, db, dst))]
     pub(crate) async fn apply(self, db: &Db, dst: &mut Connection) -> crate::Result<()> {
         let response = if let Some(value) = db.get(&self.key) {
             Frame::Bulk(value)
