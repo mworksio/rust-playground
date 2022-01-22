@@ -8,3 +8,7 @@ edition = "2021"
 [dependencies]
 #rocket = "0.4.10"
 rocket = { path = "../../Rocket/core/lib" }
+
+#[lib]
+#name = "server"
+#path = "./src/server.rs"
