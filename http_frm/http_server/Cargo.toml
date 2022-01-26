@@ -1,5 +1,5 @@
 [package]
-name = "server"
+name = "http_server"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,5 +7,5 @@ edition = "2021"
 rocket = "0.5.0-rc.1"
 
 [lib]
-name = "server"
-path = "src/server.rs"
+name = "http_server"
+path = "src/http_server.rs"

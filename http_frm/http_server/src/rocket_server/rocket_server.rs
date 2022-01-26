@@ -1,4 +1,5 @@
 #[macro_use] extern crate rocket;
+// use crate::server;
 
 // pub mod server;
 // pub use server::Server;
@@ -21,6 +22,12 @@ impl Server {
     }
 }
 
+impl http_server::HttpServer for Server {
+    fn run(&self) {
+        self.run();
+    }
+}
+
 #[get("/version")]
 fn version() -> &'static str {
     "0.0.1"
@@ -36,6 +43,6 @@ fn metrics() -> &'static str {
     "{prom}"
 }
 
-pub fn new() -> Server {
+pub fn new() -> impl http_server::HttpServer {
     Server{}
 }

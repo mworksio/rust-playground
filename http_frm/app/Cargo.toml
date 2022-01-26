@@ -3,6 +3,10 @@ name = "app"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "rocket_server"
+path = "../http_server/src/rocket_server/rocket_server.rs"
+
 [dependencies]
-server = { path = "../server" }
+http_server = { path = "../http_server" }
 rocket = "0.5.0-rc.1"

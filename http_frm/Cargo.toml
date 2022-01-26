@@ -2,7 +2,8 @@
 resolver = "2"
 
 members = [
-    "server",
+    "http_server",
+    #"http_server/rocket_server",
     "app",
 ]
 
