@@ -57,10 +57,31 @@ fn hello(lang: Option<Lang>, opt: Options<'_>) -> String {
     greeting
 }
 
-#[launch]
-fn rocket() -> _ {
-    rocket::build()
-        .mount("/hello", routes![world, who, rust])
-        .mount("/wave", routes![wave])
-        .mount("/", routes![hello])
+// #[launch]
+// fn rocket() -> _ {
+//     rocket::build()
+//         .mount("/hello", routes![world, who, rust])
+//         .mount("/wave", routes![wave])
+//         .mount("/", routes![hello])
+// }
+
+// async fn run() -> Result<(), rocket::Error> {
+    // rocket::build().mount("/", routes![rust]).launch().await;
+    // rocket::build().mount("/", routes![rust]).launch()
+// }
+
+fn run() {
+     rocket::async_main( async {
+        rocket::build().mount("/", routes![rust]).launch().await;
+    })
+}
+
+fn main() {
+    /*
+    rocket::async_main( async {
+        rocket::build().mount("/", routes![rust]).launch().await;
+    })
+    */
+    // rocket::async_main(async { run().await; })
+    run();
 }
