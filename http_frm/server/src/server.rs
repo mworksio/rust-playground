@@ -1,5 +1,8 @@
 #[macro_use] extern crate rocket;
 
+// pub mod server;
+// pub use server::Server;
+
 #[derive(Debug)]
 pub struct Server {
 

@@ -1,3 +1,4 @@
+#[macro_use] extern crate rocket;
 use server::Server;
 
 #[rocket::main]
