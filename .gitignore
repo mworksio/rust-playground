@@ -4,3 +4,5 @@ target
 index.html
 data
 .jar
+
+.DS_Store
